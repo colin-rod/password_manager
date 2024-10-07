@@ -1,5 +1,5 @@
 from tkinter import *
-import csv
+import json
 from tkinter import messagebox
 import random
 import pyperclip
@@ -30,16 +30,29 @@ def save_data():
     website = entry_website.get()
     email = entry_email.get()
     password = entry_password.get()
+    new_data = {website:{
+        "email":email,
+        "password":password
+    }}
 
     if len(website) == 0 or len(password) == 0 or len(email) == 0:
         messagebox.showinfo(title="Oops", message="Please don't leave any fields empty!")
     else:
-        is_ok = messagebox.askokcancel(title=website,
-                                       message=f"These are the details entered\nEmail:{email}\nPassword:{password}\nIs it okay to save?")
-        if is_ok:
-            with open('data.csv', 'a') as fd:
-                writer = csv.writer(fd)
-                writer.writerow([website, email, password])
+        try:
+            with open("data.json", "r") as fd:
+                data = json.load(fd)
+        except FileNotFoundError:
+            with open("data.json", "w") as fd:
+                json.dump(new_data, fd, indent=4)
+        except json.JSONDecodeError:
+            data = new_data
+            with open("data.json", "w") as fd:
+                json.dump(new_data, fd, indent=4)
+        else:
+            data.update(new_data)
+            with open("data.json", "w") as fd:
+                json.dump(data,fd,indent=4)
+        finally:
             entry_website.delete(0, END)
             entry_password.delete(0, END)
 
